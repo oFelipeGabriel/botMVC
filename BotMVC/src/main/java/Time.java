@@ -39,8 +39,6 @@ public class Time {
 			}
 		}		
 		
-		
-		System.out.println(msg);
 		return msg;
 	}
 	public String proximoJogo(Update update) throws IOException{

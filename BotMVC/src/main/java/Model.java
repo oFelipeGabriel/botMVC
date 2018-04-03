@@ -14,11 +14,7 @@ public class Model implements Subject{
 	
 	private List<Observer> observers = new LinkedList<Observer>();
 	
-	private List<Student> students = new LinkedList<Student>();
-	private List<Teacher> teachers = new LinkedList<Teacher>();
-	
 	private static Model uniqueInstance;
-	String url_camp = "http://globoesporte.globo.com/futebol/campeonato/";
 	String msg;
 	Time time = new Time();
 	Campeonato camp = new Campeonato();
@@ -41,15 +37,7 @@ public class Model implements Subject{
 			observer.update(chatId, studentsData);
 		}
 	}
-	
-	public void addStudent(Student student){
-		this.students.add(student);
-	}
-	
-	public void addTeacher(Teacher teacher){
-		this.teachers.add(teacher);
-	}
-	
+		
 	public void searchArtilheiro(Update update) throws IOException{
 		msg = "";
 		msg = camp.searchArtilheiros(update);
@@ -101,34 +89,6 @@ public class Model implements Subject{
 		}
 		
 }
-	public void searchStudent(Update update){
-		String studentsData = null;
-		for(Student student: students){
-			if(student.getName().equals(update.message().text())){
-				studentsData = student.getAcademicNumber();
-			}
-		}
-		
-		if(studentsData != null){
-			this.notifyObservers(update.message().chat().id(), studentsData);
-		} else {
-			this.notifyObservers(update.message().chat().id(), "Student not found");
-		}
-		
-	}
 	
-	public void searchTeacher(Update update){
-		String teachersData = null;
-		for(Teacher teacher:teachers){
-			if(teacher.getName().equals(update.message().text())) teachersData = teacher.getField();
-		}
-		
-		if(teachersData != null){
-			this.notifyObservers(update.message().chat().id(), teachersData);
-		} else {
-			this.notifyObservers(update.message().chat().id(), "Teacher not found");
-		}
-		
-	}
 
 }
