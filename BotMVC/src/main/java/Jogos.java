@@ -8,7 +8,7 @@ import org.jsoup.select.Elements;
 
 public class Jogos{
 	String msg = "";
-	 public String ultimo() throws IOException {
+	 public String searchUltimoJogo() throws IOException {
 		 Document doc = Jsoup.connect("http://globoesporte.globo.com/futebol/times/palmeiras").get();
 		 int cont = 0;		 
 		 Elements ultimo = doc.getElementsByClass("anterior");

@@ -74,7 +74,7 @@ public class View implements Observer{
 					this.searchBehaviour = true;
 					
 				} 
-				else if(update.message().text().toLowerCase().equals("classificaÃ§Ã£o")){
+				else if(update.message().text().toLowerCase().equals("classificação")){
 					setControllerSearch(new ControllerSearchClassificacao(model, this));
 					sendResponse = bot.execute(new SendMessage(update.message().chat().id(),"Qual campeonato?"));
 					this.searchBehaviour = true;
@@ -84,12 +84,12 @@ public class View implements Observer{
 					sendResponse = bot.execute(new SendMessage(update.message().chat().id(),"Qual campeonato?"));
 					this.searchBehaviour = true;
 				}
-				else if(update.message().text().toLowerCase().equals("prÃ³ximo jogo")){
+				else if(update.message().text().toLowerCase().equals("próximo jogo")){
 					setControllerSearch(new ControllerSearchProximoJogo(model, this));
 					sendResponse = bot.execute(new SendMessage(update.message().chat().id(),"Qual time?"));
 					this.searchBehaviour = true;
 				}
-				else if(update.message().text().toLowerCase().equals("Ãºltimo jogo")){
+				else if(update.message().text().toLowerCase().equals("último jogo")){
 					setControllerSearch(new ControllerSearchUltimoJogo(model, this));
 					sendResponse = bot.execute(new SendMessage(update.message().chat().id(),"Qual time?"));
 					this.searchBehaviour = true;
