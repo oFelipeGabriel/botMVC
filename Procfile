@@ -1,1 +1,1 @@
-web: java -jar target/bot-mvc.jar
+web: java -jar target/botMVC/bot-mvc.jar
