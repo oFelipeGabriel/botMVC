@@ -86,7 +86,7 @@ public class View implements Observer{
 				}
 				else				
 				{
-					sendResponse = bot.execute(new SendMessage(update.message().chat().id(),"Digite: classificação/n"
+					sendResponse = bot.execute(new SendMessage(update.message().chat().id(),"Digite: \nclassificação\n"
 							+"artilheiros\npróximo jogo\núltimo jogo"));
 				}
 				
