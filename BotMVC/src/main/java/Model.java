@@ -8,22 +8,20 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.pengrad.telegrambot.model.Update;
+
 import com.db4o.Db4oEmbedded;
 import com.db4o.ObjectContainer;
 import com.db4o.ObjectSet;
 import com.db4o.query.Query;
-import com.pengrad.telegrambot.model.Update;
-
 
 public class Model implements Subject{
 	
 	private List<Observer> observers = new LinkedList<Observer>();
-	ObjectContainer times = Db4oEmbedded.openFile(Db4oEmbedded.newConfiguration(), "times.db4o");
-	
-
+	ObjectContainer usuarios = Db4oEmbedded.openFile(Db4oEmbedded.newConfiguration(), "usuarios.db4o");		
 	private static Model uniqueInstance;
 	String msg;
-	Time time;
+	Time time = new Time();
 	Campeonato camp = new Campeonato();
 	
 	private Model(){}
@@ -49,8 +47,22 @@ public class Model implements Subject{
 		msg = "";
 		msg = camp.searchArtilheiros(update);
 		
-		if(msg != ""){
+		if(msg != null){
 			this.notifyObservers(update.message().chat().id(), msg);
+		} else {
+			this.notifyObservers(update.message().chat().id(), "Não encontrado");
+		}
+		
+	}
+	public void searchLink(Update update, String time) throws IOException{
+		msg = "";
+		msg = this.time.retornaLinkTime(time);
+		
+		if(msg != null){
+			this.notifyObservers(update.message().chat().id(), "Veja o link abaixo:");
+			this.notifyObservers(update.message().chat().id(), msg);
+			this.notifyObservers(update.message().chat().id(), "Ou digite a opção desejada: \n classificação" + 
+					"\n artilheiros \n próximo jogo");
 		} else {
 			this.notifyObservers(update.message().chat().id(), "Não encontrado");
 		}
@@ -58,35 +70,8 @@ public class Model implements Subject{
 	}
 	
 	public void searchUltimoJogo(Update update) throws IOException{	
-		msg = "";		
-		time = new Time();
-		time.setNome(update.message().text());
-		if(addTimeUltimo(time, update)){		
-			msg = time.getMsgUltimo();
-			System.out.println("Encontrado time");		
-			}
-			else{
-				times.close();
-				Time t;
-				times = Db4oEmbedded.openFile(Db4oEmbedded.newConfiguration(), "times.db4o");
-				Query query = times.query();
-				query.constrain(Time.class);
-			    ObjectSet<Time> allTimes = query.execute();
-				for (int i=0;i<allTimes.size();i++) {				
-					t = (Time)allTimes.get(i);
-					System.out.println(t.nome);
-					if(t.nome.equals(update.message().text())&&t.getMsgUltimo()!=null){
-						msg = t.msgUltimo;
-						System.out.println("Do banco: "+t.msgUltimo);
-						break;
-					}
-					else{
-						msg = "Falha no servidor de banco de dados";
-					}
-				}
-			    System.out.println("Do banco de dados");
-			    times.close();
-		}
+		String msg = "";
+		msg = time.searchUltimoJogo(update);
 			
 		if(msg != ""){
 			this.notifyObservers(update.message().chat().id(), msg);
@@ -94,46 +79,90 @@ public class Model implements Subject{
 			this.notifyObservers(update.message().chat().id(), "Não encontrado");
 		}
 	}
-		
-		
+	public boolean temTimeCadastrado(Long id) {
+		usuarios.close();
+		Usuario u;
+		boolean r = false;
+		usuarios = Db4oEmbedded.openFile(Db4oEmbedded.newConfiguration(), "usuarios.db4o");
+		Query query = usuarios.query();
+		query.constrain(Usuario.class);
+	    ObjectSet<Usuario> allUsers = query.execute();
+		for (int i=0;i<allUsers.size();i++) {				
+			u = (Usuario)allUsers.get(i);
+			System.out.println(u.getId());
+			if(u.getId().equals(id)){
+				r = true;
+				System.out.println("Tem time");
+			}
+		}
+		usuarios.close();
+		return r;
+	}
+	public void temTime(Update update) throws IOException {		
+		System.out.println("Faz busca de time");
+		Long id = update.message().chat().id();		
+		Usuario u;
+		boolean r = false;
+		usuarios.close();
+		r = temTimeCadastrado(id);
+		System.out.println("Tem time: "+r);
+		usuarios.close();
+		usuarios = Db4oEmbedded.openFile(Db4oEmbedded.newConfiguration(), "usuarios.db4o");
+		Query query = usuarios.query();
+		query.constrain(Usuario.class);
+	    ObjectSet<Usuario> allUsers = query.execute();
+		for (int i=0;i<allUsers.size();i++) {				
+			u = (Usuario)allUsers.get(i);
+			System.out.println(u.getId());
+			this.notifyObservers(update.message().chat().id(), u.getTime());
+			if(u.getId()==id){
+				System.out.println("Retorna lista do ultimo jogo do time cadastrado");
+			}
+		}
+		usuarios.close();
+	}
+	public String retornaTime(Update update) {
+		String time = "";
+		Usuario u;
+		usuarios.close();
+		usuarios = Db4oEmbedded.openFile(Db4oEmbedded.newConfiguration(), "usuarios.db4o");
+		Query query = usuarios.query();
+		query.constrain(Usuario.class);
+	    ObjectSet<Usuario> allUsers = query.execute();
+		for (int i=0;i<allUsers.size();i++) {
+			u = (Usuario)allUsers.get(i);
+			if(u.getId().equals(update.message().chat().id())){
+				time = u.getTime();				
+			}
+		}
+		return time;
+	}
+	public void addTimeUsuario(Usuario user, Update update) throws IOException{
+		msg = "Não cadastrado";
+		if(isUserAvailable(user.getId())){
+			user.setId(update.message().chat().id());
+			user.setTemTime(true);
+			user.setTime(update.message().text());
+			usuarios.store(user);
+			System.out.println("Cadastrado: "+user.getTime());
+			usuarios.commit();
+			usuarios.close();
+			msg = "Time Cadastrado";
+		}
+		this.notifyObservers(update.message().chat().id(), msg);
+	}
 	
 	public void searchProximoJogo(Update update) throws IOException{
-		msg = "";
-		time = new Time();
-		time.setNome(update.message().text());
-		if(addTimeProximo(time, update)){
-		msg = time.getMsgProximo();
-		System.out.println("Encontrado time");		
-		}
-		else{
-			times.close();
-			Time t;
-			times = Db4oEmbedded.openFile(Db4oEmbedded.newConfiguration(), "times.db4o");
-			Query query = times.query();
-			query.constrain(Time.class);
-		    ObjectSet<Time> allTimes = query.execute();
-			for (int i=0;i<allTimes.size();i++) {				
-				t = (Time)allTimes.get(i);
-				System.out.println(t.nome);
-				if(t.nome.equals(update.message().text())&&t.getMsgProximo()!=null){
-					msg = t.msgProximo;
-					System.out.println("Do banco: "+t.msgProximo);
-					break;
-				}
-				else{
-					msg = "Falha no servidor de banco de dados";
-				}
-			}
-		    System.out.println("Do banco de dados");
-		    times.close();
-		}
+		msg = "Encontrado";
+		System.out.println("Encontrado time");
+		msg = time.proximoJogo(update);
+		
 		if(msg != ""){
 			this.notifyObservers(update.message().chat().id(), msg);
 		} else {
 			this.notifyObservers(update.message().chat().id(), "Não encontrado");
 		}
 		System.out.println(msg);
-		
 	}
 	
 		
@@ -149,40 +178,18 @@ public class Model implements Subject{
 		}
 		
 }
-	public boolean addTimeUltimo(Time time, Update update) throws IOException{		
-		if(isTimeAvailable(time.getNome())){
-			time.setMsgUltimo(time.searchUltimoJogo(update));
-			times.store(time);
-			times.commit();
-			times.close();
-			return true;
-		}
-		return false;
-	}
-	public boolean addTimeProximo(Time time, Update update) throws IOException{		
-		if(isTimeAvailable(time.getNome())){
-			time.setMsgProximo(time.proximoJogo(update));
-			System.out.println(time.getMsgProximo());
-			times.store(time);
-			times.commit();
-			times.close();
-			return true;
-		}
-		return false;
-	}
-
-	public boolean isTimeAvailable(String time){
-		times.close();
-		times = Db4oEmbedded.openFile(Db4oEmbedded.newConfiguration(), "times.db4o");
-		Query query = times.query();
-		query.constrain(Time.class);
-	    ObjectSet<Time> allTimes = query.execute();
-	    
-	    for(Time t:allTimes){
-	    	if(t.getNome().equals(time)) return false;
-	    }	    
-	    return true;
-	}
 	
-
+	public boolean isUserAvailable(Long id){
+		usuarios.close();
+		boolean retorno = true;
+		usuarios = Db4oEmbedded.openFile(Db4oEmbedded.newConfiguration(), "usuarios.db4o");
+		Query query = usuarios.query();
+		query.constrain(Usuario.class);
+	    ObjectSet<Usuario> allUsers = query.execute();
+	    
+	    for(Usuario u:allUsers){
+	    	if(u.getId().equals(id)) retorno = false;
+	    }	    
+	    return retorno;
+	}
 }

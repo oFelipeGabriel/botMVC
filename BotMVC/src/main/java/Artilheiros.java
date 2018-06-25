@@ -22,6 +22,7 @@ public class Artilheiros {
 			}
 			
 		}
+		System.out.println("msg");
 		return msg;
 	}
 }

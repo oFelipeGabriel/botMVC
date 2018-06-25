@@ -5,52 +5,27 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.db4o.Db4oEmbedded;
-import com.db4o.ObjectContainer;
-import com.db4o.ObjectSet;
-import com.db4o.query.Query;
 import com.pengrad.telegrambot.model.Update;
 
 public class Time {
 	String url_times = "http://globoesporte.globo.com/futebol/times/";
-	String nome;
-	String msgProximo;
-	String msgUltimo;
+	String url = "";
 		
 	
-	public String getNome() {
-		return nome;
-	}
-	public void setNome(String nome) {
-		this.nome = nome;
-	}
-	
-	public String getMsgProximo() {
-		return msgProximo;
-	}
-	public void setMsgProximo(String msgProximo) {
-		this.msgProximo = msgProximo;
-	}
-	public String getMsgUltimo() {
-		return msgUltimo;
-	}
-	public void setMsgUltimo(String msgUltimo) {
-		this.msgUltimo = msgUltimo;
-	}
 	public String searchUltimoJogo(Update update) throws IOException{
-		msgUltimo = "";
-		String url = "";
+		String msg = "";
 		Document doc = Jsoup.connect(url_times).get();
 		Elements tagA = doc.getElementsByClass("theme-color");
 		for(Element t:tagA){
 			if(t.text().toLowerCase().equals(update.message().text().toLowerCase())){
-				nome = update.message().text().toLowerCase();
 				url = t.attr("href");
 			}
 		}
+		msg = url;
+		/*
 		doc = Jsoup.connect(url).get();
 		Elements jogos = doc.getElementsByClass("jogo anterior");
-		if(jogos == null){ msgUltimo = "Não há jogos encontrados";}
+		if(jogos == null){ msg = "Não há jogos previstos";}
 		else{
 			for(Element jg:jogos){							
 				Elements jogoDia = jg.getElementsByClass("ge-game-info-dia");
@@ -60,57 +35,67 @@ public class Time {
 				Elements jogoMandantePlacar = jg.getElementsByClass("numero-placar numero-placar-mandante");
 				Elements jogoVisitantePlacar = jg.getElementsByClass("numero-placar numero-placar-visitante");
 				Elements jogoVisitante = jg.getElementsByClass("sigla sigla-visitante");
-				msgUltimo += jogoDia.text()+" - "+jogoCamp.text()+" - "+jogoHora.text()+"\n"
+				msg += jogoDia.text()+" - "+jogoCamp.text()+" - "+jogoHora.text()+"\n"
 						+jogoMandante.attr("title")+" "+jogoMandantePlacar.text()+" X "
 						+jogoVisitantePlacar.text()+" "+jogoVisitante.attr("title")+"\n";
 			}
-		}		
-		setMsgUltimo(msgUltimo);
-		return msgUltimo;
+		}		*/
+		
+		return msg;
 	}
 	public String proximoJogo(Update update) throws IOException{
-		msgProximo = "";
-		String url = "";
+		String msg = "";
 		Document doc = Jsoup.connect(url_times).get();
 		Elements tagA = doc.getElementsByClass("theme-color");
 		for(Element t:tagA){
 			if(t.text().toLowerCase().equals(update.message().text().toLowerCase())){
 				url = t.attr("href");
+				System.out.println(url);
 			}
 		}
-		doc = Jsoup.connect(url).get();
-		Elements jogos = doc.getElementsByClass("jogo vigente");
-		for(Element jg:jogos){							
-				Elements jogoDia = jg.getElementsByClass("ge-game-info-dia");
-				Elements jogoCamp = jg.getElementsByClass("ge-game-info-campeonato");
+		msg = url;
+		/*doc = Jsoup.connect(url).get();
+		Elements table = doc.getElementsByClass("jogo-destaque cycle-slide cycle-slide-active");
+		for(Element e:table) {
+			System.out.println(1);
+		}
+		
+		//if(jogosTable == null){ msg = "Não há jogos previstos";}
+		/*else{
+			for(Element jogos:jogosTable) {
+				Elements jogo = jogos.getElementsByClass("post-lista-jogos__tbody");
+			for(Element jg:jogo){							
+				Elements jogoDia = jg.getElementsByClass("post-lista-jogos__campeonato");
+				Elements jogoCamp;
+				String strJogoCamp = jogoDia.toString();
+				System.out.println(strJogoCamp);
 				Elements jogoHora = jg.getElementsByClass("ge-game-info-hora");
-				Elements jogoMandante = jg.getElementsByClass("sigla sigla-mandante");
+				Elements jogoMandante = jg.getElementsByClass("post-lista-jogos__org-name post-lista-jogos__org-name--mandante");
 				Elements jogoMandantePlacar = jg.getElementsByClass("numero-placar numero-placar-mandante");
 				Elements jogoVisitantePlacar = jg.getElementsByClass("numero-placar numero-placar-visitante");
-				Elements jogoVisitante = jg.getElementsByClass("sigla sigla-visitante");
-				msgProximo += jogoDia.text()+" - "+jogoCamp.text()+" - "+jogoHora.text()+"\n"
-						+jogoMandante.attr("title")+" "+jogoMandantePlacar.text()+" X "
-						+jogoVisitantePlacar.text()+" "+jogoVisitante.attr("title")+"\n";		
-			}
-		jogos = doc.getElementsByClass("jogo proximo");
-		if(jogos == null){ msgProximo = "Não há jogos previstos";}
-		else{
-			for(Element jg:jogos){							
-				Elements jogoDia = jg.getElementsByClass("ge-game-info-dia");
-				Elements jogoCamp = jg.getElementsByClass("ge-game-info-campeonato");
-				Elements jogoHora = jg.getElementsByClass("ge-game-info-hora");
-				Elements jogoMandante = jg.getElementsByClass("sigla sigla-mandante");
-				Elements jogoMandantePlacar = jg.getElementsByClass("numero-placar numero-placar-mandante");
-				Elements jogoVisitantePlacar = jg.getElementsByClass("numero-placar numero-placar-visitante");
-				Elements jogoVisitante = jg.getElementsByClass("sigla sigla-visitante");
-				msgProximo += jogoDia.text()+" - "+jogoCamp.text()+" - "+jogoHora.text()+"\n"
-						+jogoMandante.attr("title")+" "+jogoMandantePlacar.text()+" X "
-						+jogoVisitantePlacar.text()+" "+jogoVisitante.attr("title")+"\n";		
+				Elements jogoVisitante = jg.getElementsByClass("post-lista-jogos__org-name post-lista-jogos__org-name--visitante");
+				msg += strJogoCamp+" - "+jogoMandante.attr("title")+" "
+						+" X "+jogoVisitante.attr("title")+"\n";
+				System.out.println(strJogoCamp);
 			}
 		}
-		setMsgProximo(msgProximo);
-		return msgProximo;
+		}*/
+		System.out.println(msg+"Encontrado");
+		return msg;
 	}
 	
+	public String retornaLinkTime(String time) throws IOException{
+		String msg = "";
+		url = "";
+		Document doc = Jsoup.connect(url_times).get();
+		Elements tagA = doc.getElementsByClass("theme-color");
+		for(Element t:tagA){
+			if(t.text().toLowerCase().equals(time.toLowerCase())){
+				url = t.attr("href");
+				System.out.println(url);
+			}
+		}
+		return url;
+	}
 }
 

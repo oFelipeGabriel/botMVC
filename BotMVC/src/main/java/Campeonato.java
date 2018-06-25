@@ -20,21 +20,32 @@ public class Campeonato {
 		for(Element t:tagA){
 			if(t.text().toLowerCase().equals(update.message().text().toLowerCase())){
 				url = t.attr("href");
+				System.out.println(t.text());
 			}
 		}
+		System.out.println(url);
 		doc = Jsoup.connect(url).get();
 		int cont = 0;
-		Elements posicao = doc.getElementsByClass("artilheiros-linha-corpo");
+		Elements posicao = doc.getElementsByClass("jogador");
 		for(Element pos:posicao) {
 			if(cont<25) {
-				Elements nome = pos.getElementsByClass("artilheiro-foto");
-				Elements time = pos.getElementsByClass("artilheiro-escudo");
-				Elements gols = pos.getElementsByClass("artilheiro-gols");
-				msg += (cont+1)+" - "+nome.attr("alt")+" - "+time.attr("alt")+" - "+gols.text()+" gols\n";	
+				String sNome = "";
+				String sTime = "";
+				Elements nome = pos.getElementsByClass("jogador-foto");
+				for(Element n:nome) {
+					sNome = n.getElementsByTag("img").attr("alt"); 
+				}
+				Elements time = pos.getElementsByClass("jogador-escudo");
+				for(Element t:time) {
+					sTime = t.getElementsByTag("img").attr("alt"); 
+				}
+				Elements gols = pos.getElementsByClass("jogador-gols");
+				msg += (cont+1)+" - "+sNome+" - "+sTime+" - "+gols.text()+" gols\n";	
 				cont++;
 			}
 			
 		}
+		System.out.println(msg);
 		return msg;		
 	}
 	
@@ -75,6 +86,7 @@ public class Campeonato {
 			}
 		}
 		}
+		System.out.println("msg: "+msg);
 		return msg;
 	}
 }

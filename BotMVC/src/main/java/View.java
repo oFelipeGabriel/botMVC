@@ -13,8 +13,8 @@ import com.pengrad.telegrambot.response.GetUpdatesResponse;
 import com.pengrad.telegrambot.response.SendResponse;
 
 public class View implements Observer{
-
-	
+	//FelipeESII: 507831327:AAFJxZPh-LNKQbrh9KI7yuk_1letMAz3I7k
+	//BallsOfThrones: 437136343:AAGDevHTmnLcIWrMbMyx286bUZTb8jbyqTg	
 	TelegramBot bot = TelegramBotAdapter.build("507831327:AAFJxZPh-LNKQbrh9KI7yuk_1letMAz3I7k");
 
 	//Object that receives messages
@@ -30,6 +30,9 @@ public class View implements Observer{
 	ControllerSearch controllerSearch; //Strategy Pattern -- connection View -> Controller
 	
 	boolean searchBehaviour = false;
+	boolean temTime = false;
+	boolean verificou = false;
+	String time = "";
 	
 	private Model model;
 	
@@ -53,17 +56,26 @@ public class View implements Observer{
 			
 			//Queue of messages
 			List<Update> updates = updatesResponse.updates();
-
+			
 			//taking each message in the Queue
 			for (Update update : updates) {
-				
+				ControllerSearchUsuario controllerUsuario = new ControllerSearchUsuario(model, this);
+				temTime = controllerUsuario.verificaTime(update);
 				//updating queue's index
 				queuesIndex = update.updateId()+1;
 				
 				if(this.searchBehaviour==true){
 					this.callController(update);
-					
+					this.verificou=false;
 				}
+				
+				else if(this.temTime==true && this.searchBehaviour==false && this.verificou==false) {
+					sendResponse = bot.execute(new SendMessage(update.message().chat().id(),"Olá"));
+					time = controllerUsuario.retornarTime(update);
+					controllerUsuario.retornaLink(update, time);
+					this.verificou=true;
+				}
+				
 				else if(update.message().text().toLowerCase().equals("classificação")){
 					setControllerSearch(new ControllerSearchClassificacao(model, this));
 					sendResponse = bot.execute(new SendMessage(update.message().chat().id(),"Qual campeonato?"));
@@ -72,6 +84,11 @@ public class View implements Observer{
 				else if(update.message().text().toLowerCase().equals("artilheiros")){
 					setControllerSearch(new ControllerSearchArtilharia(model, this));
 					sendResponse = bot.execute(new SendMessage(update.message().chat().id(),"Qual campeonato?"));
+					this.searchBehaviour = true;
+				}
+				else if(update.message().text().toLowerCase().equals("cadastrar")){
+					setControllerSearch(new ControllerSearchUsuario(model, this));
+					sendResponse = bot.execute(new SendMessage(update.message().chat().id(),"Qual time?"));
 					this.searchBehaviour = true;
 				}
 				else if(update.message().text().toLowerCase().equals("próximo jogo")){
@@ -87,7 +104,7 @@ public class View implements Observer{
 				else				
 				{
 					sendResponse = bot.execute(new SendMessage(update.message().chat().id(),"Digite: \nclassificação\n"
-							+"artilheiros\npróximo jogo\núltimo jogo"));
+							+"artilheiros\npróximo jogo \n ou Digite cadastrar para escolher seu Time"));
 				}
 				
 				
